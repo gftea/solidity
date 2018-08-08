@@ -1271,7 +1271,11 @@ shared_ptr<FixedPointType const> RationalNumberType::fixedPointType() const
 	if (v > u256(-1))
 		return shared_ptr<FixedPointType const>();
 
-	unsigned totalBits = max(bytesRequired(v), 1u) * 8;
+	boost::optional<unsigned> requiredBytes = bytesRequired(v, 4096);
+	if (!requiredBytes)
+		return shared_ptr<FixedPointType const>();
+
+	unsigned totalBits = max(*requiredBytes, 1u) * 8;
 	solAssert(totalBits <= 256, "");
 
 	return make_shared<FixedPointType>(

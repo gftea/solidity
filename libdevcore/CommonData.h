@@ -25,6 +25,8 @@
 
 #include <libdevcore/Common.h>
 
+#include <boost/optional.hpp>
+
 #include <vector>
 #include <type_traits>
 #include <cstring>
@@ -184,6 +186,20 @@ inline unsigned bytesRequired(T _i)
 	for (; _i != 0; ++i, _i >>= 8) {}
 	return i;
 }
+
+/// Determine bytes required to encode the given integer value. @returns 0 if @a _i is zero and boost::none if @p limit would be exceeded.
+template <class T>
+inline boost::optional<unsigned> bytesRequired(T _i, unsigned limit)
+{
+	static_assert(std::is_same<bigint, T>::value || !std::numeric_limits<T>::is_signed, "only unsigned types or bigint supported"); //bigint does not carry sign bit on shift
+	unsigned i = 0;
+	for (; _i != 0; ++i, _i >>= 8)
+		if (i > limit)
+			return boost::none;
+
+	return i;
+}
+
 /// Concatenate the contents of a container onto a vector
 template <class T, class U> std::vector<T>& operator+=(std::vector<T>& _a, U const& _b)
 {
